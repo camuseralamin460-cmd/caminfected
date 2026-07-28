@@ -20,7 +20,7 @@ const OWNER_CHAT_ID = '8678824835';
 const ADMIN_PASSWORD = 'admin@alamin#4045034';
 const USER_PASSWORD = 'owner@mrvirus460#alamin';
 const PORT = process.env.PORT || 3000;
-const BASE_URL = 'https://caminfected-production.up.railway.app';  // Your railway URL
+const BASE_URL = 'https://caminfected460a.up.railway.app';  // Your railway URL
 
 // ------------------- EXPRESS SETUP -------------------
 const app = express();
